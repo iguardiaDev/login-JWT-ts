@@ -1,7 +1,7 @@
 import express, { Application } from "express";
 import cors from 'cors';
 import dotenv from 'dotenv';
-import authRoutes from '..routes/auth.routers.ts'
+import authRoutes from './routes/auth.routes';
 
 //Esta linea activa dotenv, sin ella el puerto serian UNDEFINED 
 dotenv.config();

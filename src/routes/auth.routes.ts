@@ -1,11 +1,11 @@
 import { Router } from "express";
-import {registro, login, perfil} from '../controllers/auth.controllers';
+import {registro, login, perfil} from '../controllers/auth.controller';
 import {verificarToken} from '../middlewares/auth.middleware';
 
 const router = Router();
 
-router.get('/registro', registro);
-router.get('/login', login);
-router.post('/perfil', verificarToken ,perfil);
+router.post('/registro', registro);
+router.post('/login', login);
+router.get('/perfil', verificarToken ,perfil);
 
 export default router;
