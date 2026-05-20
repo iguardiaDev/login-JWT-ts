@@ -48,11 +48,11 @@ export const registro = async (req: Request, res: Response): Promise<void> => {
             usuario: nuevoUsuario
         });
         return;
-    }  
+    }
     catch (error)
     {
-        res.status(500).json({mensaje: 'Error en el servidor'});
-        return;
+       res.status(500).json({mensaje: 'Error en el servidor'});
+       return;
     }
 };
 
@@ -96,7 +96,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         //Aqui es donde creamos el token
         const token = jwt.sign
         (
-            {id: usuario.id, email: usuario.email}, //Payload: lo que llevara el token
+            {id: usuario.id, email: usuario.email, rol: usuario.rol}, //Payload: lo que llevara el token
             process.env.JWT_SECRET as string, //Creamos el token a base de la llave sercreta y sera un string
             {expiresIn: '1h'} //lo que el token durara
         );
@@ -104,15 +104,11 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         res.json({mensaje: 'login exitoso', token});
         return;
     }
-    catch (error) {
-  console.error(error);
-  res.status(500).json({ mensaje: 'Error en el servidor' });
-}
-    /* catch(error)
+    catch(error)
     {
         res.status(500).json({mensaje: 'Error en el servidor'});
         return;
-    } */
+    }
 };
 
 export const perfil = async (req: RequestconUsuario, res: Response): Promise<void> =>
@@ -144,3 +140,55 @@ export const perfil = async (req: RequestconUsuario, res: Response): Promise<voi
     }
 
 }
+
+export const listarUsuarios = async (req: RequestconUsuario, res: Response): Promise<void> => 
+{
+    try
+    {
+        const resultado = await pool.query(
+            'SELECT id, email, rol, created_at FROM usuarios ORDER BY created_at DESC'
+        );
+
+        res.json({usuarios: resultado.rows});
+    }
+    catch(err)
+    {
+        res.status(500).json({mensaje: 'Error en el servidor'});
+    }
+};
+
+export const cambiarRol = async (req: RequestconUsuario, res: Response): Promise<void> =>
+{
+    const{id} = req.params;
+    const{rol} = req.body;
+
+    const rolesPermitidos = ['admin', 'usuario', 'vista'];
+
+    if (!rolesPermitidos.includes(rol))
+    {
+        res.status(400).json({mensaje: `Rol invalido. los roles validos son ${rolesPermitidos.join(', ')}`});
+        return;
+    }
+
+    try
+    {
+        const resultado = await pool.query(
+            'UPDATE usuarios SET rol = $1 WHERE id = $2 RETURNING id, email, rol', [rol, id]
+        );
+
+        if (resultado.rows.length === 0)
+        {
+            res.status(404).json({mensaje: 'usuario no encontrado'});
+            return;
+        }
+        
+        res.json({
+            mensaje: 'Usuario actualizado correctamente',
+            usuario: resultado.rows[0]
+        });
+   }
+   catch (err)
+   {
+        res.status(500).json({mensaje: 'Error en el servidor'});
+   }
+};
